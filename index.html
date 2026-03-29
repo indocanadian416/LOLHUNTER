@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOL-HUNTER | Advanced Threat Research Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #e4e4e7; background-image: radial-gradient(circle at 50% 0%, #1a1a24 0%, transparent 70%); }
+        .code-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(20, 20, 24, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .gradient-text { background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-5px) scale(1.01); border-color: rgba(96, 239, 255, 0.4); box-shadow: 0 20px 40px -15px rgba(96, 239, 255, 0.15); }
+        .tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+    <nav class="sticky top-0 z-40 glass border-b border-white/5 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-emerald-400 to-cyan-500 p-2 rounded-xl shadow-lg shadow-cyan-500/20">
+                <i class="fas fa-spider text-black"></i>
+            </div>
+            <h1 class="text-2xl font-black tracking-tighter">LOL<span class="gradient-text">HUNTER</span></h1>
+        </div>
+        <div class="hidden md:flex gap-6 text-sm font-semibold text-zinc-500">
+            <span class="text-zinc-300"><i class="fas fa-database mr-1 text-blue-500"></i> Windows (LOLBAS)</span>
+            <span class="text-zinc-300"><i class="fas fa-terminal mr-1 text-emerald-500"></i> Linux (GTFOBins)</span>
+            <span class="text-zinc-300"><i class="fas fa-cloud mr-1 text-purple-500"></i> Cloud (LOTS)</span>
+        </div>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-6 pt-16 pb-10 text-center relative">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-32 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <h2 class="text-5xl md:text-6xl font-black mb-6 tracking-tight">The <span class="text-zinc-600 italic font-serif">Living off the Land</span> Matrix</h2>
+        <p class="text-zinc-400 max-w-2xl mx-auto mb-10 text-lg">An extensive repository of native binaries, scripts, and trusted cloud services (LOTS) weaponized by advanced persistent threats.</p>
+        
+        <div class="max-w-4xl mx-auto relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative flex items-center bg-[#0f0f13] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+                <i class="fas fa-search text-zinc-500 pl-6 text-xl"></i>
+                <input type="text" id="searchInput" placeholder="Search techniques or domains (e.g., github, discord, msbuild, curl)..." 
+                       class="w-full bg-transparent border-none py-5 pl-4 pr-6 focus:outline-none focus:ring-0 text-white placeholder-zinc-600 text-lg">
+                <div class="pr-4 hidden sm:block">
+                    <span class="text-xs text-zinc-600 font-mono border border-zinc-700 rounded px-2 py-1 bg-zinc-900">CTRL+K</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[90rem] mx-auto px-6">
+        <div class="flex flex-wrap gap-3 mb-10 justify-center items-center">
+            <span class="text-zinc-500 text-sm font-semibold uppercase tracking-wider mr-2 hidden md:block">Filters:</span>
+            <button onclick="filterType('all')" class="filter-btn active px-6 py-2.5 rounded-full glass border-zinc-700 hover:bg-zinc-800 transition text-sm font-semibold shadow-md">All Vectors</button>
+            <button onclick="filterType('Windows')" class="filter-btn px-6 py-2.5 rounded-full glass border-blue-500/20 text-blue-400 hover:bg-blue-500/10 transition text-sm font-semibold shadow-md"><i class="fab fa-windows mr-1"></i> Windows</button>
+            <button onclick="filterType('Linux')" class="filter-btn px-6 py-2.5 rounded-full glass border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 transition text-sm font-semibold shadow-md"><i class="fab fa-linux mr-1"></i> Linux</button>
+            <button onclick="filterType('Cloud')" class="filter-btn px-6 py-2.5 rounded-full glass border-purple-500/20 text-purple-400 hover:bg-purple-500/10 transition text-sm font-semibold shadow-md"><i class="fas fa-cloud mr-1"></i> Cloud (LOTS)</button>
+        </div>
+
+        <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-[#121216] border border-zinc-800 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modalContent">
+            
+            <div class="p-6 border-b border-zinc-800/50 flex justify-between items-start bg-[#18181c]">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 id="modalTitle" class="text-3xl font-black tracking-tight text-white"></h3>
+                        <span id="modalCategory" class="tag border"></span>
+                    </div>
+                    <p id="modalDesc" class="text-zinc-400 text-sm leading-relaxed max-w-2xl"></p>
+                </div>
+                <button onclick="closeModal()" class="text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 p-2 rounded-lg transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-black/50 rounded-xl border border-zinc-800/80 overflow-hidden">
+                        <div class="flex justify-between items-center bg-zinc-900/50 px-4 py-3 border-b border-zinc-800/80">
+                            <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"><i class="fas fa-code mr-1 text-cyan-500"></i> Hunt Query / Exploit Payload</span>
+                            <button onclick="copyPayload()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded transition flex items-center gap-2">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <div class="p-4 overflow-x-auto">
+                            <code id="modalPayload" class="code-font text-sm text-emerald-400 whitespace-pre-wrap break-all"></code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Tactics / Functions</h4>
+                        <div id="modalFunctions" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Platform</h4>
+                        <div id="modalOS" class="flex items-center gap-2 text-zinc-300 font-medium"></div>
+                    </div>
+
+                    <div class="pt-4 border-t border-zinc-800/50">
+                        <a id="modalUrl" href="#" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-3 rounded-xl transition font-semibold text-sm">
+                            View Official Documentation <i class="fas fa-external-link-alt text-xs text-zinc-400"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            // --- WINDOWS (LOLBAS) ---
+            { name: "Certutil.exe", os: "Windows", category: "LOLBAS", desc: "Native certificate management tool. Highly abused to download files, or encode/decode base64 payloads to bypass static signatures.", function: ["Download", "Encode", "Decode", "Alternate Data Streams"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/certutil\\.exe/i\n| CommandLine=/(?:-urlcache|-f|-split|decode)/i\n| table([@timestamp, ComputerName, CommandLine])", url: "https://lolbas-project.github.io/lolbas/Binaries/Certutil/" },
+            { name: "Mshta.exe", os: "Windows", category: "LOLBAS", desc: "Executes Microsoft HTML Applications (.hta). Exploited to bypass application whitelisting and execute VBScript/JScript embedded in URLs or files.", function: ["Execution", "Defense Evasion"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/mshta\\.exe/i\n| CommandLine=/(?:http|https|javascript|vbscript):/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Mshta/" },
+            { name: "Rundll32.exe", os: "Windows", category: "LOLBAS", desc: "Executes 32-bit and 64-bit DLLs. Used heavily by ransomware and APTs to proxy execution of malicious code (e.g., executing JavaScript or custom DLL exports).", function: ["Execution", "Defense Evasion"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/rundll32\\.exe/i\n| CommandLine=/(?:javascript|vbscript|RegisterXLL|DllRegisterServer|#1)/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Rundll32/" },
+            { name: "Regsvr32.exe", os: "Windows", category: "LOLBAS", desc: "Command-line utility to register/unregister OLE controls. The 'Squiblydoo' attack uses this to download and execute COM scriptlets directly from the internet.", function: ["Execution", "Defense Evasion", "Bypass AWL"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/regsvr32\\.exe/i\n| CommandLine=/(?i)\\/i:(?:http|https|ftp).*scrobj\\.dll/", url: "https://lolbas-project.github.io/lolbas/Binaries/Regsvr32/" },
+            { name: "PowerShell.exe", os: "Windows", category: "LOLBAS", desc: "Extremely powerful native scripting environment. Used for nearly every phase of an attack: staging, execution, discovery, and exfiltration.", function: ["Execution", "Download", "Base64", "Discovery"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|pwsh)\\.exe/i\n| CommandLine=/(?:-enc|-encodedcommand|-w hidden|-windowstyle hidden|-nop|-noprofile|-exec bypass)/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Powershell/" },
+            { name: "Wmic.exe", os: "Windows", category: "LOLBAS", desc: "Windows Management Instrumentation Command-line. Used for lateral movement, discovery, and AV evasion via XSL style sheets.", function: ["Execution", "Lateral Movement", "Discovery"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/wmic\\.exe/i\n| CommandLine=/(?:process call create|\\/format:|\"http)/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Wmic/" },
+            { name: "Bitsadmin.exe", os: "Windows", category: "LOLBAS", desc: "Manages Background Intelligent Transfer Service (BITS) jobs. Abused for stealthy, asynchronous downloads and establishing persistence.", function: ["Download", "Persistence"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/bitsadmin\\.exe/i\n| CommandLine=/(?:\\/transfer|\\/create|\\/addfile)/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Bitsadmin/" },
+            { name: "MSBuild.exe", os: "Windows", category: "LOLBAS", desc: "Microsoft Build Engine. Compiles and executes C# code directly from XML project files, completely bypassing application whitelisting.", function: ["Execution", "Defense Evasion"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/msbuild\\.exe/i\n| CommandLine=/\\.xml|\\.proj/i", url: "https://lolbas-project.github.io/lolbas/Binaries/Msbuild/" },
+            
+            // --- LINUX (GTFOBins) ---
+            { name: "Bash", os: "Linux", category: "GTFOBins", desc: "Standard Linux shell. Trivially abused to create reverse connections via /dev/tcp, execute scripts, and escalate privileges if SUID is set.", function: ["Reverse Shell", "Execution", "SUID"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/\\/bash$/\n| CommandLine=/\\/dev\\/tcp\\//", url: "https://gtfobins.org/gtfobins/bash/" },
+            { name: "Python", os: "Linux", category: "GTFOBins", desc: "Often installed by default on servers. Used for full-featured reverse shells, spawning TTY shells, HTTP staging, and privilege escalation.", function: ["Reverse Shell", "SUID", "Download"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/\\/python(?:3)?$/\n| CommandLine=/(?:import socket|import pty)/", url: "https://gtfobins.org/gtfobins/python/" },
+            { name: "Curl", os: "Linux", category: "GTFOBins", desc: "Data transfer tool. Used to download second-stage payloads and pipe them directly into a shell (curl | bash), or exfiltrate data via POST requests.", function: ["Download", "Exfiltration"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/\\/curl$/\n| CommandLine=/(?:-F|-d|--data|\\| bash)/", url: "https://gtfobins.org/gtfobins/curl/" },
+            { name: "Wget", os: "Linux", category: "GTFOBins", desc: "Non-interactive network downloader. Abused similarly to curl to pull down malware or exfiltrate data via HTTP headers/POST bodies.", function: ["Download", "Exfiltration", "SUID"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/\\/wget$/\n| CommandLine=/(?:--post-data|--post-file|-O \\/tmp\\/)/", url: "https://gtfobins.org/gtfobins/wget/" },
+            { name: "Netcat (nc)", os: "Linux", category: "GTFOBins", desc: "The TCP/IP swiss army knife. The primary tool for establishing bind shells, reverse shells, and raw data exfiltration across the network.", function: ["Reverse Shell", "Bind Shell", "Network"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:\\/nc$|\\/netcat$)/\n| CommandLine=/(?:-e \\/bin\\/sh|-e \\/bin\\/bash)/", url: "https://gtfobins.org/gtfobins/nc/" },
+
+            // --- CLOUD / APPS (LOTS) ---
+            { name: "GitHub", os: "Cloud", category: "LOTS", desc: "Domains: raw.githubusercontent.com, gist.githubusercontent.com. Used extensively by threat actors to host first and second stage payloads to bypass domain reputation filters.", function: ["Staging", "C2"], payload: "#event_simpleName=DnsRequest DomainName=/(?:raw\\.githubusercontent\\.com|gist\\.githubusercontent\\.com)/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|cmd|curl|wget)\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])\n| table([@timestamp, ComputerName, DomainName, ImageFileName, CommandLine])", url: "https://lots-project.com/projects/github/" },
+            { name: "Pastebin", os: "Cloud", category: "LOTS", desc: "Domains: pastebin.com. Attackers paste raw base64 encoded payloads or PowerShell scripts here, pulling them down dynamically during execution.", function: ["Staging", "Dead Drop Resolver"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|certutil)\\.exe/i\n| CommandLine=/(?i)pastebin\\.com\\/raw\\//\n| table([@timestamp, ComputerName, CommandLine])", url: "https://lots-project.com/projects/pastebin/" },
+            { name: "Discord", os: "Cloud", category: "LOTS", desc: "Domains: cdn.discordapp.com, discord.com/api/webhooks. Attackers use Discord CDN to host malware, and Discord Webhooks to actively exfiltrate stolen credentials and data.", function: ["Exfiltration", "Staging", "C2"], payload: "#event_simpleName=NetworkConnectIP4 \n| RemoteAddressIP4=/discord/i \n| join(query={#event_simpleName=ProcessRollup2 ImageFileName!=/discord\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/discord/" },
+            { name: "Slack", os: "Cloud", category: "LOTS", desc: "Domains: api.slack.com, hooks.slack.com, files.slack.com. Used by APTs to establish Command & Control channels via Slack APIs, blending in with corporate traffic.", function: ["C2", "Exfiltration"], payload: "#event_simpleName=DnsRequest DomainName=/(?:api\\.slack\\.com|hooks\\.slack\\.com|files\\.slack\\.com)/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName!=/slack\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/slack/" },
+            { name: "Telegram", os: "Cloud", category: "LOTS", desc: "Domains: api.telegram.org. The Telegram Bot API is heavily abused by InfoStealers (like RedLine or Raccoon) to exfiltrate stolen logs and passwords.", function: ["Exfiltration", "C2"], payload: "#event_simpleName=DnsRequest DomainName=/api\\.telegram\\.org/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName!=/telegram\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/telegram/" },
+            { name: "Dropbox", os: "Cloud", category: "LOTS", desc: "Domains: dl.dropboxusercontent.com, api.dropboxapi.com. Abused to host executable payloads and quietly exfiltrate sensitive network data.", function: ["Staging", "Exfiltration"], payload: "#event_simpleName=DnsRequest DomainName=/(?:dl\\.dropboxusercontent\\.com|api\\.dropboxapi\\.com)/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|curl|wget|rclone)\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/dropbox/" },
+            { name: "Google Drive & Docs", os: "Cloud", category: "LOTS", desc: "Domains: drive.google.com, docs.google.com, sheets.google.com, script.google.com. Used for large scale data exfiltration and C2 beaconing.", function: ["Exfiltration", "C2"], payload: "#event_simpleName=DnsRequest DomainName=/(?:drive|docs|sheets|script)\\.google\\.com/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|cmd|rclone)\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/google_drive/" },
+            { name: "Microsoft OneDrive", os: "Cloud", category: "LOTS", desc: "Domains: onedrive.live.com, api.onedrive.com, graph.microsoft.com. Used for large scale data exfiltration and payload staging.", function: ["Exfiltration", "Staging"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:rclone|powershell)\\.exe/i\n| CommandLine=/(?i)(?:onedrive\\.live\\.com|graph\\.microsoft\\.com)/", url: "https://lots-project.com/projects/onedrive/" },
+            { name: "AWS S3", os: "Cloud", category: "LOTS", desc: "Domains: s3.amazonaws.com. Legitimate AWS CLI tools are frequently weaponized by ransomware operators to sync massive amounts of data out to public buckets.", function: ["Exfiltration"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/aws\\.exe/i\n| CommandLine=/(?:s3 sync|s3 cp).*s3:\\/\\//i", url: "https://lots-project.com/projects/s3/" },
+            { name: "Notion", os: "Cloud", category: "LOTS", desc: "Domains: api.notion.com. Abused for Command and Control. Attackers read task pages for commands and write command outputs back via API.", function: ["C2", "Dead Drop Resolver"], payload: "#event_simpleName=DnsRequest DomainName=/api\\.notion\\.com/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|cmd|python|bash)\\.(?:exe|)/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/notion/" },
+            { name: "Trello", os: "Cloud", category: "LOTS", desc: "Domains: api.trello.com. Exploited for C2 communication via legitimate API requests. Malware treats Trello boards as command queues.", function: ["C2"], payload: "#event_simpleName=DnsRequest DomainName=/api\\.trello\\.com/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName!=/browser\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/trello/" },
+            { name: "Ngrok", os: "Cloud", category: "LOTS", desc: "Domains: ngrok.com, ngrok.io, ngrok-free.app. Deployed by attackers inside compromised networks to punch holes through firewalls for reverse shells or RDP.", function: ["Tunneling", "Lateral Movement"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/ngrok\\.exe/i\n| CommandLine=/(?:tcp|http|authtoken)/i\n| table([@timestamp, ComputerName, CommandLine])", url: "https://lots-project.com/projects/ngrok/" },
+            { name: "Webhook.site", os: "Cloud", category: "LOTS", desc: "Domains: webhook.site. Used for simple data exfiltration, capturing output from reverse shells, or testing C2 callbacks.", function: ["Exfiltration", "C2"], payload: "#event_simpleName=DnsRequest DomainName=/webhook\\.site/i\n| join(query={#event_simpleName=ProcessRollup2 ImageFileName=/(?:curl|wget|powershell)\\.exe/i}, field=[ContextProcessId], key=[TargetProcessId])", url: "https://lots-project.com/projects/webhook/" },
+            { name: "Transfer.sh", os: "Cloud", category: "LOTS", desc: "Domains: transfer.sh. Command-line file sharing service used for rapid and simple data exfiltration from Linux and Windows hosts.", function: ["Exfiltration"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:curl|wget)\\.exe/i\n| CommandLine=/(?i)transfer\\.sh/", url: "https://lots-project.com/projects/transfer_sh/" },
+            { name: "File.io", os: "Cloud", category: "LOTS", desc: "Domains: file.io. Ephemeral file sharing service. Files are deleted after one download, making it an excellent anti-forensics exfiltration tool.", function: ["Exfiltration"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:curl|powershell)\\.exe/i\n| CommandLine=/(?i)file\\.io/", url: "https://lots-project.com/projects/file_io/" },
+            { name: "Mega.nz", os: "Cloud", category: "LOTS", desc: "Domains: mega.nz, mega.co.nz. Ransomware affiliates heavily use MEGAsync or MegaCmd to quietly upload stolen files before encryption.", function: ["Exfiltration"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:mega-cmd|megacli|powershell)\\.exe/i\n| CommandLine=/(?i)mega\\.nz/", url: "https://lots-project.com/projects/mega/" },
+            { name: "Rentry.co", os: "Cloud", category: "LOTS", desc: "Domains: rentry.co. Markdown pastebin. Used by attackers to host malicious scripts and second-stage payloads securely.", function: ["Staging", "Dead Drop Resolver"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|certutil)\\.exe/i\n| CommandLine=/(?i)rentry\\.co\\//", url: "https://lots-project.com/projects/rentry/" },
+            { name: "Paste.ee", os: "Cloud", category: "LOTS", desc: "Domains: paste.ee, api.paste.ee. Text hosting alternative to Pastebin, frequently used for retrieving obfuscated payloads.", function: ["Staging", "C2"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|certutil)\\.exe/i\n| CommandLine=/(?i)paste\\.ee\\/r\\//", url: "https://lots-project.com/projects/paste_ee/" },
+            { name: "ControlC", os: "Cloud", category: "LOTS", desc: "Domains: controlc.com. Text hosting used by various threat actors for storing and retrieving encoded malicious scripts.", function: ["Staging"], payload: "#event_simpleName=ProcessRollup2 ImageFileName=/(?:powershell|certutil)\\.exe/i\n| CommandLine=/(?i)controlc\\.com\\//", url: "https://lots-project.com/projects/controlc/" }
+        ];
+
+        const grid = document.getElementById('resultsGrid');
+        const searchInput = document.getElementById('searchInput');
+
+        function renderCards(items) {
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-zinc-500"><i class="fas fa-ghost text-4xl mb-4"></i><p>No techniques found matching your query.</p></div>`;
+                return;
+            }
+            
+            grid.innerHTML = items.map(item => {
+                let colorClass, icon;
+                if(item.os === 'Windows') { colorClass = 'border-blue-500/30 text-blue-400 bg-blue-500/10'; icon = 'fab fa-windows'; }
+                else if(item.os === 'Linux') { colorClass = 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'; icon = 'fab fa-linux'; }
+                else { colorClass = 'border-purple-500/30 text-purple-400 bg-purple-500/10'; icon = 'fas fa-cloud'; }
+
+                return `
+                <div class="glass p-6 rounded-2xl card-hover cursor-pointer h-full flex flex-col" onclick="openModal('${item.name.replace(/'/g, "\\'")}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-xl font-bold text-white tracking-tight">${item.name}</h4>
+                        <span class="tag border ${colorClass}"><i class="${icon} mr-1"></i> ${item.category}</span>
+                    </div>
+                    <p class="text-sm text-zinc-400 mb-5 flex-grow line-clamp-3">${item.desc}</p>
+                    <div class="flex flex-wrap gap-1.5 mt-auto">
+                        ${item.function.slice(0, 3).map(f => `<span class="text-[10px] bg-zinc-800/80 border border-zinc-700/50 px-2 py-1 rounded text-zinc-300 font-mono uppercase tracking-tight">${f}</span>`).join('')}
+                        ${item.function.length > 3 ? `<span class="text-[10px] bg-zinc-800/80 border border-zinc-700/50 px-2 py-1 rounded text-zinc-500 font-mono uppercase">+${item.function.length - 3}</span>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function filterType(type) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('bg-zinc-800', 'border-zinc-500'));
+            event.currentTarget.classList.add('bg-zinc-800', 'border-zinc-500');
+            
+            searchInput.value = ''; 
+            
+            if (type === 'all') renderCards(data);
+            else renderCards(data.filter(i => i.os === type));
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('bg-zinc-800'));
+            
+            renderCards(data.filter(i => 
+                i.name.toLowerCase().includes(query) || 
+                i.desc.toLowerCase().includes(query) ||
+                i.function.some(f => f.toLowerCase().includes(query))
+            ));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            if (e.key === 'Escape' && !document.getElementById('modal').classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        function openModal(name) {
+            const item = data.find(i => i.name === name);
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modalContent');
+            
+            let colorClass, icon;
+            if(item.os === 'Windows') { colorClass = 'border-blue-500 text-blue-400 bg-blue-500/10'; icon = 'fab fa-windows text-blue-400'; }
+            else if(item.os === 'Linux') { colorClass = 'border-emerald-500 text-emerald-400 bg-emerald-500/10'; icon = 'fab fa-linux text-emerald-400'; }
+            else { colorClass = 'border-purple-500 text-purple-400 bg-purple-500/10'; icon = 'fas fa-cloud text-purple-400'; }
+
+            document.getElementById('modalTitle').innerText = item.name;
+            document.getElementById('modalCategory').className = `tag border ${colorClass}`;
+            document.getElementById('modalCategory').innerHTML = `${item.category}`;
+            document.getElementById('modalOS').innerHTML = `<i class="${icon} text-lg"></i> ${item.os} Platform`;
+            document.getElementById('modalDesc').innerText = item.desc;
+            document.getElementById('modalPayload').innerText = item.payload;
+            document.getElementById('modalUrl').href = item.url;
+            
+            document.getElementById('modalFunctions').innerHTML = item.function.map(f => 
+                `<span class="text-xs bg-zinc-800 border border-zinc-700 px-3 py-1.5 rounded-md text-zinc-300 font-mono uppercase">${f}</span>`
+            ).join('');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() { 
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function copyPayload() {
+            navigator.clipboard.writeText(document.getElementById('modalPayload').innerText);
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> Copied`;
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        }
+
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) closeModal();
+        });
+
+        renderCards(data);
+    </script>
+</body>
+</html>
